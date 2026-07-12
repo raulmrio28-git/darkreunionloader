@@ -3,6 +3,10 @@
 #include <stddef.h>
 #include <memory.h>
 
+//DRL - Add for QSC60X0 I/F 20260712
+#include <stdbool.h>
+//DRL - Add for QSC60X0 I/F 20260712
+
 #ifdef DCC_TESTING
 #include <stdio.h>
 
