@@ -36,7 +36,9 @@ DLIBS =
 #
 
 # Define project name here
-PROJECT = dumpnow
+#DRL - rename project 20260712
+PROJECT = dark_reunion
+#DRL - rename project 20260712
 
 # Define linker script file here
 LDSCRIPT = build/ram.ld
@@ -117,7 +119,17 @@ DADEFS += -DUSE_BREAKPOINTS=0
 DDEFS += -DUSE_BREAKPOINTS=0
 endif
 
-SRC = main.c dcc/memory.c dcc/dn_dcc_proto.c dcc/bitutils.c dcc/lwprintf.c plat/$(PLATFORM).c $(DEVICES) $(CONTROLLERS) $(ADD_DEPS)
+#DRL - add platform-specific stuff for I/O 20260712
+SRC = main.c dcc/memory.c dcc/bitutils.c dcc/lwprintf.c io/common.c io/packet_io.c cmds.c plat/$(PLATFORM).c id.c $(DEVICES) $(CONTROLLERS) $(ADD_DEPS)
+
+ifeq ($(PLATFORM), qcom/qsc60x0)
+DADEFS += -DPLATFORM_USES_USB=1
+DDEFS += -DPLATFORM_USES_USB=1
+DADEFS += -DPLATFORM_USES_UART=1
+DDEFS += -DPLATFORM_USES_UART=1
+SRC += io/qsc60x0_usb.c io/qsc60x0_uart.c 
+endif
+#DRL - add platform-specific stuff for I/O 20260712
 
 # List ASM source files here
 ASRC = crt.s
@@ -192,6 +204,7 @@ clean:
 	-rm -fR .dep
 
 help:
+#DRL - add platform-specific stuff for I/O 20260712
 	@echo Dumpnow DCC Loader
 	@echo 	LZO=1 = Enable LZO Compression
 	@echo 	LZ4=1 = Enable LZ4 Compression
@@ -204,7 +217,7 @@ help:
 	@echo 	SUPERAND_CONTROLLER=(name) = Enable SuperAND controller
 	@echo 	USE_ICACHE=1 = Use instruction cache (ARM9 and later)
 	@echo 	BP_LOADER=1 = If the chipset have broken DCC Support, compiling as Breakpoint-based loader might help
-
+#DRL - add platform-specific stuff for I/O 20260712
 #
 # Include the dependency files, should be the last of the makefile
 #

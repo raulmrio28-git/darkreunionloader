@@ -1,4 +1,5 @@
 #include "dcc/plat.h"
+#include "io/io_type.h"
 
 /*
 The following is code for USB I/O, reverse engineered from a
@@ -72,7 +73,7 @@ bool USB_packet_started = false;
 uint8_t USB_rx_buffer[0x1000];
 uint8_t USB_tx_buffer[0x1000];
 
-static void init_usb_reg_table()
+static void qsc60x0_init_usb_reg_table()
 {
   USB_Registers.USB_SETUP_ADDR = 0x6200041C;
   USB_Registers.USB_SETUP_WORD = 0x62000418;
@@ -99,7 +100,7 @@ static void init_usb_reg_table()
   USB_Registers.USB_OUT_FIFO_8_STATUS = 0x62000428;
 }
 
-void qsc60x0_read_usb_fifo(uint32_t *r, uint8_t *d, uint32_t len, uint16_t fifo_state)
+void qsc60x0_read_usb_fifo(uint32_t r, uint8_t *d, uint32_t len, uint16_t fifo_state)
 {
     uint32_t len_d = (len + 3) >> 2;
     wdog_reset();
@@ -134,7 +135,7 @@ void qsc60x0_read_usb_fifo(uint32_t *r, uint8_t *d, uint32_t len, uint16_t fifo_
     WRITE_U16(USB_Registers.USB_OUT_FIFO_CMD, fifo_state);
 }
 
-void qsc60x0_write_usb_fifo(uint32_t *r, uint8_t *s, uint32_t len, uint16_t fifo_state)
+void qsc60x0_write_usb_fifo(uint32_t r, uint8_t *s, uint32_t len, uint16_t fifo_state)
 {
     uint32_t len_d = (len + 3) >> 2;
     wdog_reset();
@@ -167,6 +168,20 @@ void qsc60x0_write_usb_fifo(uint32_t *r, uint8_t *s, uint32_t len, uint16_t fifo
     }
 
     WRITE_U16(USB_Registers.USB_IN_FIFO_CMD, (len<<8)|fifo_state);
+}
+
+void qsc60x0_usb_handle_pkts(uint32_t a, uint32_t len, uint16_t fifo_state)
+{
+  uint8_t r;
+  int i;
+
+  wdog_reset();
+  for (i=0;i<len;i++)
+  {
+    r = READ_U8(a+i);
+    DRL_Packet_RX(r);
+  }
+  WRITE_U16(USB_Registers.USB_OUT_FIFO_CMD, fifo_state);
 }
 
 int qsc60x0_usb_get_bank(int fifo)
@@ -210,11 +225,11 @@ void qsc60x0_usb_setup_update()
     wdog_reset();
     if (usb_setup_word == 0x2021) //USB serial info read
     {
-      qsc60x0_read_usb_fifo(0x62000350, &USB_Serial, READ_U16(USB_Registers.USB_OUT_FIFO_8_STATUS)&0x1f, 5);
+      qsc60x0_read_usb_fifo(0x62000350, (uint8_t*)&USB_Serial, READ_U16(USB_Registers.USB_OUT_FIFO_8_STATUS)&0x1f, 5);
     }
     else if (usb_setup_word == 0x21a1) //USB serial info write
     {
-      qsc60x0_write_usb_fifo(0x62000340, &USB_Serial, usb_setup_len, 2);
+      qsc60x0_write_usb_fifo(0x62000340, (uint8_t*)&USB_Serial, usb_setup_len, 2);
       while(!(READ_U16(USB_Registers.USB_INT_STATUS)&1)) //we need to wait till fifo0 has data
       {
         for(i=0;i<1000;i++)
@@ -231,9 +246,11 @@ void qsc60x0_usb_setup_update()
 
 /* Stars of the show */
 
-bool qsc60x0_usb_initialize()
+bool qsc60x0_usb_init()
 {
-  if (READ_U16(0x62000408)&0xff == 1) //USB_EP_STATUS has 1 endpoint present
+  qsc60x0_init_usb_reg_table();
+
+  if (READ_U16(0x62000408)&0x1) //USB_EP_STATUS has 1 endpoint present
 		return false;
 	
 	WRITE_U16(USB_Registers.USB_INT_MASK_WR, 0); //set every uint32_terrupt to 0
@@ -388,7 +405,7 @@ void qsc60x0_usb_read()
         if((usb_core_state&0x20)==0) //FIFO6 already RXed
           return;
         fifo_status = READ_U16(USB_Registers.USB_OUT_FIFO_6_STATUS);
-        qsc60x0_usb_handle_pkts(USB_fifo5_banks[(fifo_status>>8)&0x1], fifo_status&0x7f, 3);
+        qsc60x0_usb_handle_pkts(USB_fifo6_banks[(fifo_status>>8)&0x1], fifo_status&0x7f, 3);
         return;
       case 0xb: //invalid, used as a flag
         remaining = qsc60x0_usb_read_remaining();
@@ -397,7 +414,7 @@ void qsc60x0_usb_read()
           int i;
           for(i=0;i<remaining;i++)
           {
-            //dr_packet_rx(USB_rx_buffer[i]); //TODO: add packet stuff
+            DRL_Packet_RX(USB_rx_buffer[i]);
           }
         }
         return;
@@ -420,11 +437,11 @@ void qsc60x0_usb_write_remaining(int len)
   WRITE_U16(USB_Registers.USB_HDR_INT_CLR, 0x80); //empty FIFO
 }
 
-void qsc60x0_usb_write(uint8_t b)
+void qsc60x0_usb_write(uint32_t b)
 {
   bool is_beginning = false;
   bool write_to_fifo = false;
-  USB_tx_buffer[USB_State.wr_len++] - b;
+  USB_tx_buffer[USB_State.wr_len++] = b;
   wdog_reset();
   if (b==0x7e) //escape
   {
@@ -466,3 +483,12 @@ void qsc60x0_usb_write(uint8_t b)
     }
   }
 }
+
+drl_io_funcs_t io_usb = {
+    .initialize = qsc60x0_usb_init,
+    .active = qsc60x0_usb_active,
+    .drain = qsc60x0_usb_drain,
+    .read = qsc60x0_usb_read,
+    .write = qsc60x0_usb_write,
+    .bitsize = 8
+};

@@ -1,7 +1,9 @@
 #pragma once
 #include "plat.h"
 
-#define DCC_BUFFER_SIZE 0x40000
+//DRL - change buffer sz to maximum 0x400 20260712
+#define DCC_BUFFER_SIZE 0x400
+//DRL - change buffer sz to maximum 0x400 20260712
 #define ALIGN2(x) ((x + 1) & ~1)
 #define ALIGN4(x) ((x + 3) & ~3)
 
