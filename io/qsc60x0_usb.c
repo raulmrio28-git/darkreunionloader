@@ -233,14 +233,14 @@ void qsc60x0_usb_setup_update()
 
 bool qsc60x0_usb_initialize()
 {
-  memset(&USB_State,0,sizeof(qsc60x0_usb_state_t));
-	if (READ_U16(0x62000408)&0xff == 1) //USB_EP_STATUS has 1 endpoint present
+  if (READ_U16(0x62000408)&0xff == 1) //USB_EP_STATUS has 1 endpoint present
 		return false;
 	
 	WRITE_U16(USB_Registers.USB_INT_MASK_WR, 0); //set every uint32_terrupt to 0
 	WRITE_U16(USB_Registers.USB_INT_SOF_MASK, 0); //set every FIFO mask to 0
 	WRITE_U16(USB_Registers.USB_INT_SOF_COUNT, 0); //set every FIFO throttle to 0
 	
+	memset(&USB_State,0,sizeof(qsc60x0_usb_state_t));
 	//everything is false or 0
 	memset(&USB_Serial, 0, sizeof(qsc60x0_usb_serial_t));
 	
