@@ -3,6 +3,21 @@ I/O Type struct
 */
 #include "dcc/dn_dcc_proto.h"
 
+typedef enum {
+    USBDC_GET_LINE_CODING = 0x102,
+    USBDC_SET_CONTROL_LINE_STATE_I = 0x2221,
+    USBDC_SET_LINE_CODING = 0x2021,
+    USBDC_SETUP_CLEAR_FEATURE_E = 0x21A1
+} usb_cdc_csr_e;
+
+#pragma pack(1)
+typedef struct {
+    usb_cdc_csr_e bmRequest_and_Type:16;
+    uint16_t wValue;
+    uint16_t wIndex;
+    uint16_t wLength;
+}usbdc_setup_type;
+
 typedef struct {
     //Initializer of I/O
     bool (*init) (void);

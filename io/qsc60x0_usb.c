@@ -223,11 +223,11 @@ void qsc60x0_usb_setup_update()
     WRITE_U16(USB_Registers.USB_SETUP_ADDR, 6);
     usb_setup_len = READ_U16(USB_Registers.USB_SETUP_WORD);
     wdog_reset();
-    if (usb_setup_word == 0x2021) //USB serial info read
+    if (usb_setup_word == USBDC_SET_LINE_CODING) //set line coding
     {
       qsc60x0_read_usb_fifo(0x62000350, (uint8_t*)&USB_Serial, READ_U16(USB_Registers.USB_OUT_FIFO_8_STATUS)&0x1f, 5);
     }
-    else if (usb_setup_word == 0x21a1) //USB serial info write
+    else if (usb_setup_word == USBDC_SETUP_CLEAR_FEATURE_E) //setup clear 
     {
       qsc60x0_write_usb_fifo(0x62000340, (uint8_t*)&USB_Serial, usb_setup_len, 2);
       while(!(READ_U16(USB_Registers.USB_INT_STATUS)&1)) //we need to wait till fifo0 has data
@@ -236,7 +236,7 @@ void qsc60x0_usb_setup_update()
           ;
       }
     }
-    else if (usb_setup_word != 0x2221 && (READ_U16(USB_Registers.USB_CORE_STATUS)&0x40)) //fifo8 has data
+    else if (usb_setup_word != USBDC_SET_CONTROL_LINE_STATE_I && (READ_U16(USB_Registers.USB_CORE_STATUS)&0x40)) //fifo8 has data/get line coding?
     {
       WRITE_U16(USB_Registers.USB_OUT_FIFO_CMD, 4); //flush fifo8
     }
