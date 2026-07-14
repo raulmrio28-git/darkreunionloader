@@ -22,8 +22,8 @@ extern uint8_t need_hello;
 extern DCCMemory mem[];
 extern uint8_t mem_has_spare[];
 
-static uint8_t compBuf[DCC_BUFFER_SIZE + 0x2000];
-static uint8_t rawBuf[DCC_BUFFER_SIZE + 0x2000];
+static uint8_t compBuf[DCC_BUFFER_SIZE + 0x400];
+static uint8_t rawBuf[DCC_BUFFER_SIZE + 0x400];
 
 size_t strlen(const char *str);
 
@@ -242,23 +242,6 @@ int DRL_Packet_FlashRead(incoming_t i)
     }
 
     return 0;
-}
-
-int DRL_Packet_FlashWrite(incoming_t i)
-{
-    uint32_t src_offset, src_size;
-    uint8_t flash_id;
-    uint8_t algo;
-    uint32_t out_sz;
-    uint32_t dest_size;
-    Driver *dev_base;
-    DCC_RETURN res;
-    
-    flash_id = i->buffer[1];
-    algo = i->buffer[2];
-    src_offset = i->buffer[3] | (i->buffer[4]<<8) | (i->buffer[5]<<16) | (i->buffer[6]<<24);
-    src_size = i->buffer[7] | (i->buffer[8]<<8);
- 
 }
 
 int (*DRL_Packet_Cmds[]) (incoming_t) =

@@ -6,6 +6,7 @@
 *
 *  History:
 *
+*  13.07.26  drl    Change address, make .bss noload
 *  30.03.06  mifi   First Version
 ****************************************************************************/
 
@@ -24,7 +25,7 @@ SVC_STACK_SIZE = 0x0100;
 
 MEMORY
 {
-  ram : org = 0x00000000, len = 1024k
+  ram : org = 0x10000000, len = 1024k 
 }
 
 /*
@@ -61,7 +62,7 @@ SECTIONS
     PROVIDE (__data_end = .);
   } > ram
 
-  .bss :
+  .bss (NOLOAD):
   {
     PROVIDE (__bss_start = .);
     *(.bss)

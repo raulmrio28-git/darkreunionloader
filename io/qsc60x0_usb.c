@@ -70,8 +70,8 @@ static uint32_t USB_fifo5_banks[] = {0x62000140,0x62000180,0x620001C0,0x62000200
 bool USB_packet_process = false;
 bool USB_packet_started = false;
 
-uint8_t USB_rx_buffer[0x1000];
-uint8_t USB_tx_buffer[0x1000];
+uint8_t USB_rx_buffer[0x100];
+uint8_t USB_tx_buffer[0x100];
 
 static void qsc60x0_init_usb_reg_table()
 {
@@ -485,7 +485,7 @@ void qsc60x0_usb_write(uint32_t b)
 }
 
 drl_io_funcs_t io_usb = {
-    .initialize = qsc60x0_usb_init,
+    .init = qsc60x0_usb_init,
     .active = qsc60x0_usb_active,
     .drain = qsc60x0_usb_drain,
     .read = qsc60x0_usb_read,

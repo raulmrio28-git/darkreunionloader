@@ -4,9 +4,21 @@
 //DRL - Modify for multi I/O 20260712
 #include "io/io_type.h"
 //DRL - Modify for multi I/O 20260712
+//DRL - Modify for proper func 20260712
+#if HAVE_LWMEM==1
+#include "lwmem/lwmem.h"
+
+lwmem_region_t lwmem_regions[] = {
+    { (void*)0x10100000, 1024*64}, //Please note to change addr depending on platform!
+    { NULL, 0}
+};
+#endif
+//DRL - Modify for proper func 20260712
 
 typedef DCC_RETURN DCC_INIT_PTR(DCCMemory *mem, uint32_t offset);
 typedef DCC_RETURN DCC_READ_PTR(DCCMemory *mem, uint32_t offset, uint32_t size, uint8_t *dest, uint32_t *dest_size);
+
+uint32_t DN_Log2(uint32_t value);
 
 #ifdef DCC_TESTING
 void *absolute_to_relative(void* ptr) { return ptr; };
@@ -24,13 +36,15 @@ uint8_t mem_has_spare[16] = { 0 };
 //DRL - move for extern, reduce size for limit 20260712
 
 bool DRL_Flash_Detected = false;
-uint32_t DN_Log2(uint32_t value)
+
+//init mem
+
+void memory_init(void)
 {
-  uint32_t m = 0;
-  while (1) {
-    if ((1 << m) >= value)
-      return m;
-    m++;
+  extern uint32_t __bss_start, __bss_end;
+
+  for (uint32_t* i = &__bss_start; i < &__bss_end; i++) {
+    *i = 0;
   }
 }
 
@@ -39,7 +53,9 @@ void dcc_main(uint32_t StartAddress, uint32_t PageSize) {
     uint32_t ext_mem;
     Driver *devBase;
     DCC_RETURN res;
-
+#if HAVE_LWMEM==1
+    lwmem_assignmem(lwmem_regions);
+#endif
     for (int i = 0; i < 16; i++) {
         if (!devices[i].driver) break;
         devBase = (Driver *)absolute_to_relative(devices[i].driver);
@@ -111,4 +127,14 @@ void dcc_main(uint32_t StartAddress, uint32_t PageSize) {
         DRL_Packet_Proc();
         wdog_reset();
     }
+}
+
+uint32_t DN_Log2(uint32_t value)
+{
+  uint32_t m = 0;
+  while (1) {
+    if ((1 << m) >= value)
+      return m;
+    m++;
+  }
 }

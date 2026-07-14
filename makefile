@@ -81,8 +81,18 @@ DADEFS += -DHAVE_LWMEM=0
 endif
 
 # Devices
-ifeq ($(CFI), 1)
-DEVICES += flash/cfi/cfi.c
+#DRL - modify CFI to NOR 20260713
+ifeq ($(NOR_FLASH), 1)
+DDEFS += -DUSE_NOR_FLASH
+DADEFS += -DUSE_NOR_FLASH
+DEVICES += flash/nor/nor.c
+DEVICES += flash/nor/nor_cfi.c
+DEVICES += flash/nor/nor_samsung.c
+DEVICES += flash/nor/nor_amd_spansion.c
+DEVICES += flash/nor/nor_intel_numonyx.c
+DEVICES += flash/nor/nor_toshiba.c
+DEVICES += flash/nor/nor_mitsubishi_renesas.c
+#DRL - modify CFI to NOR 20260713
 endif
 
 ifdef NAND_CONTROLLER
@@ -204,6 +214,7 @@ clean:
 	-rm -fR .dep
 
 help:
+#DRL - modify CFI to NOR 20260713
 #DRL - add platform-specific stuff for I/O 20260712
 	@echo Dumpnow DCC Loader
 	@echo 	LZO=1 = Enable LZO Compression
@@ -211,13 +222,14 @@ help:
 	@echo 	LWMEM=1 = Enable LWMEM memory management
 	@echo 	PLATFORM=(name) Select chipset platform
 	@echo 	MCU=(MCU) = Select CPU architecture
-	@echo 	CFI=1 = Enable CFI interface
+	@echo 	NOR_FLASH=1 = Enable NOR handling
 	@echo 	NAND_CONTROLLER=(name) = Enable NAND controller
 	@echo 	ONENAND_CONTROLLER=(name) = Enable OneNAND controller
 	@echo 	SUPERAND_CONTROLLER=(name) = Enable SuperAND controller
 	@echo 	USE_ICACHE=1 = Use instruction cache (ARM9 and later)
 	@echo 	BP_LOADER=1 = If the chipset have broken DCC Support, compiling as Breakpoint-based loader might help
 #DRL - add platform-specific stuff for I/O 20260712
+#DRL - modify CFI to NOR 20260713
 #
 # Include the dependency files, should be the last of the makefile
 #

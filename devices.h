@@ -1,14 +1,20 @@
 #pragma once
 
 #include "dcc/dn_dcc_proto.h"
-#include "flash/cfi/cfi.h"
+//DRL - modify CFI to NOR 20260713
+#include "flash/nor/nor.h"
+//DRL - modify CFI to NOR 20260713
 #include "flash/nand/nand.h"
 #include "flash/onenand/onenand.h"
 #include "flash/superand/superand.h"
 
 static Device devices[] = {
-    {&nor_cfi_controller, 0x0},
-    {&nor_cfi_controller, 0x12000000},
+//DRL - modify CFI to NOR 20260713
+#ifdef USE_NOR_FLASH
+    {&nor_controller, 0x0},
+    {&nor_controller, 0x12000000},
+#endif
+//DRL - modify CFI to NOR 20260713
     // {&nand_controller, 0x0},
     {0x0, 0x0}
 };

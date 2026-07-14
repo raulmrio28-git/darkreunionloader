@@ -21,6 +21,7 @@ bool qsc60x0_uart_init()
     while ((READ_U8(0x80000F14) & 1) == 0) //read and wdog while RXRDY bit of UART_SR is 0
     {
         r = READ_U8(0x80000F18); //read till death
+        if (r) {}
         wdog_reset();
     }
     return true;
@@ -89,7 +90,7 @@ void qsc60x0_uart_write(uint32_t b)
 }
 
 drl_io_funcs_t io_uart = {
-    .initialize = qsc60x0_uart_init,
+    .init = qsc60x0_uart_init,
     .active = qsc60x0_uart_active,
     .drain = qsc60x0_uart_drain,
     .read = qsc60x0_uart_read,

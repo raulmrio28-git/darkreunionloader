@@ -5,7 +5,7 @@ I/O Type struct
 
 typedef struct {
     //Initializer of I/O
-    bool (*initialize) (void);
+    bool (*init) (void);
     //Check if I/O is active
     bool (*active) (void);
     //Drain remaining I/O stuff
