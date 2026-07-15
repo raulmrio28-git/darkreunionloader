@@ -254,7 +254,7 @@ static void qsc60x5_usb_setup_rx_DMA(int ep_num, uint8_t *rx_buffer, int total_b
   *(ep_mem_ptr +3 ) = temp_dword;
 
   /* set system mem start addr */
-  *(uint32_t*)(0x80016980+(2*ep_num)) = rx_buffer;
+  *(uint32_t*)(0x80016980+(2*ep_num)) = (uint32_t)rx_buffer;
 
   /* Tell USB core that RX buffer is drained & ready for rxing more data */
   qsc60x5_usb_ep_clear_xfilled(ep_num, USBDC_EP_DIR_OUT);
@@ -296,7 +296,7 @@ static void qsc60x5_usb_setup_tx_DMA(int ep_num, uint8_t *tx_buffer, int total_b
   *(ep_mem_ptr +3 ) = temp_dword;
 
   /* point to the data */
-  *(uint32_t*)(0x80016984+(2*ep_num)) = tx_buffer;
+  *(uint32_t*)(0x80016984+(2*ep_num)) = (uint32_t)tx_buffer;
 
   /* enable this DMA transfer */
   WRITE_U32(0x80016824,  ( 2 << 2*ep_num ) );
@@ -521,7 +521,7 @@ static void qsc60x5_usb_do_handle_setup_msgs()
   uint16_t reply_length;
   uint8_t *reply_data_ptr;
   uint32_t temp_dword;
-  uint32_t *buf_dword_ptr = 0x80017000;
+  uint32_t *buf_dword_ptr = (uint32_t*)0x80017000;
   uint32_t *data_mem_ptr, *ep_mem_ptr;
   usbdc_setup_type setup;
   int ep_num;
@@ -613,28 +613,18 @@ static void qsc60x5_usb_do_handle_setup_msgs()
   (*ep_mem_ptr) &= ~USBDC_ENDPOINT_TTLBTECNT_M;
 
   if (USB_State.setup_data_stage_flag)
-  {
     *(ep_mem_ptr) += setup.wLength;
-  }
   else
-  {
      *(ep_mem_ptr) += 128;
-  }
 
   qsc60x5_usb_ep_enable_ready(USBDC_CONTROL, USBDC_EP_DIR_OUT);
 
   if (USB_State.setup_data_stage_flag == false)
   {
     if (reply_length > 0)
-    {
-      qsc60x5_usb_setup_tx_DMA(USBDC_CONTROL, 
-                         reply_data_ptr, 
-                         reply_length);
-    }
+      qsc60x5_usb_setup_tx_DMA(USBDC_CONTROL, reply_data_ptr, reply_length);
     else
-    {
       qsc60x5_usb_send_zero_length_pkt(USBDC_CONTROL);
-    }
   }
 }
 
@@ -745,7 +735,7 @@ bool qsc60x5_usb_init(void)
     USB_State.usb_in_endpoint  = USBDC_DATA;
   }
   
-  while (usb_ep_done_status(USB_State.usb_out_endpoint, USBDC_EP_DIR_OUT) == false)
+  while (qsc60x5_usb_ep_done_status(USB_State.usb_out_endpoint, USBDC_EP_DIR_OUT) == false)
     wdog_reset();
 
   qsc60x5_usb_ep_enable_done_int(USBDC_CONTROL, USBDC_EP_DIR_OUT);
@@ -776,7 +766,7 @@ void qsc60x5_usb_read()
 
   wdog_reset();
 
-  if (READ_U32(0x80012064)&1 == 0)
+  if ((READ_U32(0x80012064)&1) == 0)
     return;
   else
     WRITE_U32(0x80016004, 0x2);

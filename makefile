@@ -96,6 +96,10 @@ DEVICES += flash/nor/nor_mitsubishi_renesas.c
 endif
 
 ifdef NAND_CONTROLLER
+#DRL - add NAND support 20260715
+DDEFS += -DUSE_NAND_FLASH
+DADEFS += -DUSE_NAND_FLASH
+#DRL - add NAND support 20260715
 DEVICES += flash/nand/nand.c
 CONTROLLERS += flash/nand/controller/$(NAND_CONTROLLER).c
 endif
@@ -140,6 +144,16 @@ DDEFS += -DPLATFORM_USES_UART=1
 SRC += io/qsc60x0_usb.c io/qsc60x0_uart.c 
 endif
 #DRL - add platform-specific stuff for I/O 20260712
+
+#DRL - add platform-specific stuff for I/O (QSC60x5) 20260712
+ifeq ($(PLATFORM), qcom/qsc60x5)
+DADEFS += -DPLATFORM_USES_USB=1
+DDEFS += -DPLATFORM_USES_USB=1
+DADEFS += -DPLATFORM_USES_UART=1
+DDEFS += -DPLATFORM_USES_UART=1
+SRC += io/qsc60x5_usb.c io/qsc60x5_uart.c 
+endif
+#DRL - add platform-specific stuff for I/O (QSC60x5) 20260712
 
 # List ASM source files here
 ASRC = crt.s

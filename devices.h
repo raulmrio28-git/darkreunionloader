@@ -15,6 +15,10 @@ static Device devices[] = {
     {&nor_controller, 0x12000000},
 #endif
 //DRL - modify CFI to NOR 20260713
-    // {&nand_controller, 0x0},
+//DRL - add NAND support 20260715
+#ifdef USE_NAND_FLASH
+    {&nand_controller, 0x0},
+#endif
+//DRL - add NAND support 20260715
     {0x0, 0x0}
 };

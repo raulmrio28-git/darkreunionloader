@@ -25,7 +25,7 @@ SVC_STACK_SIZE = 0x0100;
 
 MEMORY
 {
-  ram : org = 0x10000000, len = 1024k 
+  ram : org = 0x00800000, len = 1024k 
 }
 
 /*
